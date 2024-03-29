@@ -33,15 +33,15 @@ let qrCodeSvg;
 
 client.on("qr", (qr) => {
   // Genera el código QR como una imagen SVG
-  qrcode.toDataURL(qr, { type: 'image/svg+xml' }, function (err, url) {
+  qrcode.toDataURL(qr, { type: "image/svg+xml" }, function (err, url) {
     qrCodeSvg = url;
   });
 });
 
 console.log(qrCodeSvg);
 // Ruta para mostrar el código QR
-app.get('/qr', (req, res) => {
-  if(qrCodeSvg) {
+app.get("/qr", (req, res) => {
+  if (qrCodeSvg) {
     res.send(`<img src="${qrCodeSvg}">`);
   } else {
     res.send("QR Code not available yet.");
@@ -93,7 +93,7 @@ app.post("/send-messages", express.json(), async (req, res) => {
       const number = `${"549" + Numero}@c.us`;
       message = message.replace(/{paciente}/g, Nombre);
       message = message.replace(/{hora}/g, numberToHour(Hora));
-      message = message.replace(/{profecional}/g, data[0].Profeciona);
+      message = message.replace(/{profesional}/g, data[0].Profesional);
       message = message.replace(/{fecha}/g, formatDate(new Date()));
 
       message = message.replace(/{fecha \+ (\d+)}/g, (match, days) => {
