@@ -13,9 +13,20 @@ const app = express();
 app.use(cors());
 
 const client = new Client({
-  authStrategy: new LocalAuth({
-    clientId: "client-one",
-  }),
+  authStrategy: new LocalAuth(),
+  webVersion: "2.2409.2",
+  webVersionCache:{
+    type:"remote",
+    remotePath:"https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2409.2.html"
+  }
+  // puppeteer: {
+  //   headless: true,
+  //   args: [
+  //     "--no-sandbox",
+  //     "--disable-setuid-sandbox",
+  //     "--disable-dev-shm-usage",
+  //   ],
+  // },
 });
 
 client.on("ready", () => {
@@ -32,14 +43,18 @@ client.initialize();
 let qrCodeSvg;
 
 client.on("qr", (qr) => {
-  // Genera el código QR como una imagen SVG
   qrcode.toDataURL(qr, { type: "image/svg+xml" }, function (err, url) {
     qrCodeSvg = url;
   });
 });
 
-console.log(qrCodeSvg);
-// Ruta para mostrar el código QR
+process.on("SIGINT", async () => {
+  console.log("(SIGINT) Shutting down...");
+  await client.destroy();
+  console.log("client destroyed");
+  process.exit(0);
+});
+
 app.get("/qr", (req, res) => {
   if (qrCodeSvg) {
     res.send(`<img src="${qrCodeSvg}">`);
@@ -73,18 +88,15 @@ app.post("/send-messages", express.json(), async (req, res) => {
     const sheet = workbook.Sheets[sheetName];
     const data = xlsx.utils.sheet_to_json(sheet);
 
-    console.log(data); // Aquí tienes tus datos
-
     function addDaysToDate(days) {
       const date = new Date();
       date.setDate(date.getDate() + days);
       return date;
     }
 
-    // Función para formatear la fecha en el formato dd/mm/AAAA
     function formatDate(date) {
       const day = date.getDate().toString().padStart(2, "0");
-      const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Los meses son 0-indexados
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
       const year = date.getFullYear();
       return `${day}/${month}/${year}`;
     }
