@@ -15,18 +15,19 @@ app.use(cors());
 const client = new Client({
   authStrategy: new LocalAuth(),
   webVersion: "2.2409.2",
-  webVersionCache:{
-    type:"remote",
-    remotePath:"https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2409.2.html"
-  }
-  // puppeteer: {
-  //   headless: true,
-  //   args: [
-  //     "--no-sandbox",
-  //     "--disable-setuid-sandbox",
-  //     "--disable-dev-shm-usage",
-  //   ],
-  // },
+  webVersionCache: {
+    type: "remote",
+    remotePath:
+      "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2409.2.html",
+  },
+  puppeteer: {
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+    ],
+  },
 });
 
 client.on("ready", () => {
@@ -101,6 +102,8 @@ app.post("/send-messages", express.json(), async (req, res) => {
       return `${day}/${month}/${year}`;
     }
 
+    const promeseAll = [];
+
     data.forEach(({ Hora, Nombre, Numero }) => {
       const number = `${"549" + Numero}@c.us`;
       message = message.replace(/{paciente}/g, Nombre);
@@ -112,16 +115,20 @@ app.post("/send-messages", express.json(), async (req, res) => {
         return formatDate(addDaysToDate(Number(days)));
       });
 
-      client
-        .sendMessage(number, message)
-        .then((response) => {
-          console.log(`Mensaje enviado a ${Nombre}`);
-          //   console.log(`respuesta:`, response);
-        })
-        .catch((err) => {
-          console.error(`Error al enviar mensaje a ${Nombre}`, err);
-        });
+      promeseAll.push(client.sendMessage(number, message));
+
+      // client
+      //   .sendMessage(number, message)
+      //   .then((response) => {
+      //     console.log(`Mensaje enviado a ${Nombre}`);
+      //     //   console.log(`respuesta:`, response);
+      //   })
+      //   .catch((err) => {
+      //     console.error(`Error al enviar mensaje a ${Nombre}`, err);
+      //   });
     });
+
+    await Promise.all(promeseAll);
 
     res.status(200).json({ message: "Mensajes enviados" });
   } catch (error) {

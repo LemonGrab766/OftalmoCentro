@@ -1,0 +1,9 @@
+2024/03/29-19:42:07.561 2ad0 Reusing MANIFEST C:\Users\juanp\OneDrive\Escritorio\Juan\oftal-cent-back\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2024/03/29-19:42:07.567 2ad0 Recovering log #128
+2024/03/29-19:42:07.722 2ad0 Reusing old log C:\Users\juanp\OneDrive\Escritorio\Juan\oftal-cent-back\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000128.log 
+2024/03/29-19:42:30.133 2a9c Level-0 table #137: started
+2024/03/29-19:42:30.481 2a9c Level-0 table #137: 1035284 bytes OK
+2024/03/29-19:42:30.561 2a9c Delete type=0 #128
+2024/03/29-19:42:31.059 2a9c Compacting 1@1 + 5@2 files
+2024/03/29-19:42:31.376 2a9c Generated table #138@1: 34051 keys, 2211891 bytes
+2024/03/29-19:42:31.590 2a9c Generated table #139@1: 3256 keys, 2158027 bytes
