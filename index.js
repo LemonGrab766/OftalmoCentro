@@ -1,6 +1,6 @@
 const express = require("express");
 const { Client, LocalAuth } = require("whatsapp-web.js");
-const qrcode = require("qrcode-terminal");
+const qrcode = require("qrcode");
 const xlsx = require("xlsx");
 const cors = require("cors");
 const formidable = require("formidable");
@@ -25,8 +25,27 @@ client.on("ready", () => {
 
 client.initialize();
 
+// client.on("qr", (qr) => {
+//   qrcode.generate(qr, { small: true });
+// });
+
+let qrCodeSvg;
+
 client.on("qr", (qr) => {
-  qrcode.generate(qr, { small: true });
+  // Genera el código QR como una imagen SVG
+  qrcode.toDataURL(qr, { type: 'image/svg+xml' }, function (err, url) {
+    qrCodeSvg = url;
+  });
+});
+
+console.log(qrCodeSvg);
+// Ruta para mostrar el código QR
+app.get('/qr', (req, res) => {
+  if(qrCodeSvg) {
+    res.send(`<img src="${qrCodeSvg}">`);
+  } else {
+    res.send("QR Code not available yet.");
+  }
 });
 
 app.post("/send-messages", express.json(), async (req, res) => {
