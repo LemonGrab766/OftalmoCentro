@@ -1,142 +1,152 @@
-const express = require("express");
-const { Client, LocalAuth } = require("whatsapp-web.js");
-const qrcode = require("qrcode");
-const xlsx = require("xlsx");
-const cors = require("cors");
-const formidable = require("formidable");
-const numberToHour = require("./utils/numberToHour");
+// const express = require("express");
+// const { Client, LocalAuth } = require("whatsapp-web.js");
+// const qrcode = require("qrcode");
+// const xlsx = require("xlsx");
+// const cors = require("cors");
+// const formidable = require("formidable");
+// const numberToHour = require("./utils/numberToHour");
+const server = require("./src/app");
 
 const port = process.env.PORT || 3001;
-let clientReady = false;
+// let clientReady = false;
 
-const app = express();
-app.use(cors());
+// const app = express();
+// // app.use(cors());
 
-const client = new Client({
-  authStrategy: new LocalAuth(),
-  webVersion: "2.2409.2",
-  webVersionCache: {
-    type: "remote",
-    remotePath:
-      "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2409.2.html",
-  },
-  puppeteer: {
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-    ],
-  },
-});
-
-client.on("ready", () => {
-  clientReady = true;
-  console.log("Client is ready!");
-});
-
-client.initialize();
-
-// client.on("qr", (qr) => {
-//   qrcode.generate(qr, { small: true });
+// const client = new Client({
+//   authStrategy: new LocalAuth(),
+//   webVersion: "2.2409.2",
+//   webVersionCache: {
+//     type: "remote",
+//     remotePath:
+//       "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2409.2.html",
+//   },
+//   puppeteer: {
+//     headless: true,
+//     args: [
+//       "--no-sandbox",
+//       "--disable-setuid-sandbox",
+//       "--disable-dev-shm-usage",
+//     ],
+//   },
 // });
 
-let qrCodeSvg;
+// client.on("ready", () => {
+//   clientReady = true;
+//   console.log("Client is ready!");
+// });
 
-client.on("qr", (qr) => {
-  qrcode.toDataURL(qr, { type: "image/svg+xml" }, function (err, url) {
-    qrCodeSvg = url;
-  });
-});
+// client.initialize();
 
-process.on("SIGINT", async () => {
-  console.log("(SIGINT) Shutting down...");
-  await client.destroy();
-  console.log("client destroyed");
-  process.exit(0);
-});
+// // client.on("qr", (qr) => {
+// //   qrcode.generate(qr, { small: true });
+// // });
 
-app.get("/qr", (req, res) => {
-  if (qrCodeSvg) {
-    res.send(`<img src="${qrCodeSvg}">`);
-  } else {
-    res.send("QR Code not available yet.");
-  }
-});
+// let qrCodeSvg;
 
-app.post("/send-messages", express.json(), async (req, res) => {
-  if (!clientReady) {
-    return res
-      .status(503)
-      .json({ message: "El cliente de WhatsApp no está listo" });
-  }
-  try {
-    const form = new formidable.IncomingForm();
-    const parseForm = () => {
-      return new Promise((resolve, reject) => {
-        form.parse(req, (err, fields, files) => {
-          if (err) reject(err);
-          resolve({ files, fields });
-        });
-      });
-    };
-    const files = await parseForm();
-    const file = files.files.file;
-    let message = files.fields.message[0];
+// client.on("qr", (qr) => {
+//   qrcode.toDataURL(qr, { type: "image/svg+xml" }, function (err, url) {
+//     qrCodeSvg = url;
+//   });
+// });
 
-    const workbook = xlsx.readFile(file[0].filepath);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const data = xlsx.utils.sheet_to_json(sheet);
+// process.on("SIGINT", async () => {
+//   console.log("(SIGINT) Shutting down...");
+//   await client.destroy();
+//   console.log("client destroyed");
+//   process.exit(0);
+// });
 
-    function addDaysToDate(days) {
-      const date = new Date();
-      date.setDate(date.getDate() + days);
-      return date;
-    }
+// app.head("/client", (req, res) => {
+//   console.log("confirmar sever");
+//   if (qrCodeSvg) {
+//     res.send(`Client-on`);
+//   } else {
+//     res.send("Client-off");
+//   }
+// })
 
-    function formatDate(date) {
-      const day = date.getDate().toString().padStart(2, "0");
-      const month = (date.getMonth() + 1).toString().padStart(2, "0");
-      const year = date.getFullYear();
-      return `${day}/${month}/${year}`;
-    }
+// app.get("/qr", (req, res) => {
+//   if (qrCodeSvg) {
+//     res.send(`<img src="${qrCodeSvg}">`);
+//   } else {
+//     res.send("QR Code not available yet.");
+//   }
+// });
 
-    const promeseAll = [];
+// app.post("/send-messages", express.json(), async (req, res) => {
+//   if (!clientReady) {
+//     return res
+//       .status(503)
+//       .json({ message: "El cliente de WhatsApp no está listo" });
+//   }
+//   try {
+//     const form = new formidable.IncomingForm();
+//     const parseForm = () => {
+//       return new Promise((resolve, reject) => {
+//         form.parse(req, (err, fields, files) => {
+//           if (err) reject(err);
+//           resolve({ files, fields });
+//         });
+//       });
+//     };
+//     const files = await parseForm();
+//     const file = files.files.file;
+//     let message = files.fields.message[0];
 
-    data.forEach(({ Hora, Nombre, Numero }) => {
-      const number = `${"549" + Numero}@c.us`;
-      message = message.replace(/{paciente}/g, Nombre);
-      message = message.replace(/{hora}/g, numberToHour(Hora));
-      message = message.replace(/{profesional}/g, data[0].Profesional);
-      message = message.replace(/{fecha}/g, formatDate(new Date()));
+//     const workbook = xlsx.readFile(file[0].filepath);
+//     const sheetName = workbook.SheetNames[0];
+//     const sheet = workbook.Sheets[sheetName];
+//     const data = xlsx.utils.sheet_to_json(sheet);
 
-      message = message.replace(/{fecha \+ (\d+)}/g, (match, days) => {
-        return formatDate(addDaysToDate(Number(days)));
-      });
+//     function addDaysToDate(days) {
+//       const date = new Date();
+//       date.setDate(date.getDate() + days);
+//       return date;
+//     }
 
-      promeseAll.push(client.sendMessage(number, message));
+//     function formatDate(date) {
+//       const day = date.getDate().toString().padStart(2, "0");
+//       const month = (date.getMonth() + 1).toString().padStart(2, "0");
+//       const year = date.getFullYear();
+//       return `${day}/${month}/${year}`;
+//     }
 
-      // client
-      //   .sendMessage(number, message)
-      //   .then((response) => {
-      //     console.log(`Mensaje enviado a ${Nombre}`);
-      //     //   console.log(`respuesta:`, response);
-      //   })
-      //   .catch((err) => {
-      //     console.error(`Error al enviar mensaje a ${Nombre}`, err);
-      //   });
-    });
+//     const promeseAll = [];
 
-    await Promise.all(promeseAll);
+//     data.forEach(({ Hora, Nombre, Numero }) => {
+//       const number = `${"549" + Numero}@c.us`;
+//       message = message.replace(/{paciente}/g, Nombre);
+//       message = message.replace(/{hora}/g, numberToHour(Hora));
+//       message = message.replace(/{profesional}/g, data[0].Profesional);
+//       message = message.replace(/{fecha}/g, formatDate(new Date()));
 
-    res.status(200).json({ message: "Mensajes enviados" });
-  } catch (error) {
-    res.status(500).json({ message: "Ha ocurrido un error", error });
-    console.log(error);
-  }
-});
+//       message = message.replace(/{fecha \+ (\d+)}/g, (match, days) => {
+//         return formatDate(addDaysToDate(Number(days)));
+//       });
 
-app.listen(port, () => {
+//       promeseAll.push(client.sendMessage(number, message));
+
+//       // client
+//       //   .sendMessage(number, message)
+//       //   .then((response) => {
+//       //     console.log(`Mensaje enviado a ${Nombre}`);
+//       //     //   console.log(`respuesta:`, response);
+//       //   })
+//       //   .catch((err) => {
+//       //     console.error(`Error al enviar mensaje a ${Nombre}`, err);
+//       //   });
+//     });
+
+//     await Promise.all(promeseAll);
+
+//     res.status(200).json({ message: "Mensajes enviados" });
+//   } catch (error) {
+//     res.status(500).json({ message: "Ha ocurrido un error", error });
+//     console.log(error);
+//   }
+// });
+
+server.listen(port, () => {
   console.log(`port runing in http://localhost:${port}`);
 });
