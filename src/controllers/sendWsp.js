@@ -2,78 +2,67 @@ const formidable = require("formidable");
 const xlsx = require("xlsx");
 const { isClientReady, client } = require("./wsp/whatsappClient");
 const numberToHour = require("../utils/numberToHour");
+const { formatDate, addDaysToDate } = require("../utils/dateFuncts");
+const { delay } = require("../utils/delay");
 
-const sendWsp = async (req, res) => {
+const sendWsp = async (data, messageTemplate) => {
+  try {
+    for (const item of data) {
+      const number = `549${item.Numero}@c.us`;
+      let message = messageTemplate
+        .replace(/{paciente}/g, item.Nombre)
+        .replace(/{hora}/g, numberToHour(item.Hora))
+        .replace(/{profesional}/g, item.Profesional)
+        .replace(/{fecha}/g, formatDate(new Date()))
+        .replace(/{fecha \+ (\d+)}/g, (match, days) =>
+          formatDate(addDaysToDate(Number(days)))
+        );
+
+      await client.sendMessage(number, message);
+
+      await delay(14000);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const sendWspInBackground = async (req, res) => {
   if (!isClientReady()) {
     return res
       .status(503)
       .json({ message: "El cliente de WhatsApp no está listo" });
   }
-  try {
-    const form = new formidable.IncomingForm();
-    const parseForm = () => {
-      return new Promise((resolve, reject) => {
-        form.parse(req, (err, fields, files) => {
-          if (err) reject(err);
-          resolve({ files, fields });
-        });
+
+  const form = new formidable.IncomingForm();
+  const parseForm = () => {
+    return new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        resolve({ files, fields });
       });
-    };
-    const files = await parseForm();
-    const file = files.files.file;
-    let message = files.fields.message[0];
+    });
+  };
+  const files = await parseForm();
+  const file = files.files.file;
+  let messageTemplate = files.fields.message[0];
 
-    const workbook = xlsx.readFile(file[0].filepath);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const data = xlsx.utils.sheet_to_json(sheet);
+  const workbook = xlsx.readFile(file[0].filepath);
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  const data = xlsx.utils.sheet_to_json(sheet);
 
-    function addDaysToDate(days) {
-      const date = new Date();
-      date.setDate(date.getDate() + days);
-      return date;
-    }
-
-    function formatDate(date) {
-      const day = date.getDate().toString().padStart(2, "0");
-      const month = (date.getMonth() + 1).toString().padStart(2, "0");
-      const year = date.getFullYear();
-      return `${day}/${month}/${year}`;
-    }
-
-    const promeseAll = [];
-
-    data.forEach(({ Hora, Nombre, Numero }) => {
-      const number = `${"549" + Numero}@c.us`;
-      message = message.replace(/{paciente}/g, Nombre);
-      message = message.replace(/{hora}/g, numberToHour(Hora));
-      message = message.replace(/{profesional}/g, data[0].Profesional);
-      message = message.replace(/{fecha}/g, formatDate(new Date()));
-
-      message = message.replace(/{fecha \+ (\d+)}/g, (match, days) => {
-        return formatDate(addDaysToDate(Number(days)));
-      });
-
-      promeseAll.push(client.sendMessage(number, message));
-
-      // client
-      //   .sendMessage(number, message)
-      //   .then((response) => {
-      //     console.log(`Mensaje enviado a ${Nombre}`);
-      //     //   console.log(`respuesta:`, response);
-      //   })
-      //   .catch((err) => {
-      //     console.error(`Error al enviar mensaje a ${Nombre}`, err);
-      //   });
+  sendWsp(data, messageTemplate)
+    .then(() => {
+      console.log("Todos los mensajes han sido enviados.");
+    })
+    .catch((error) => {
+      console.error("Ocurrió un error al enviar los mensajes:", error);
     });
 
-    await Promise.all(promeseAll);
-
-    res.status(200).json({ message: "Mensajes enviados" });
-  } catch (error) {
-    res.status(500).json({ message: "Ha ocurrido un error", error });
-    console.log(error);
-  }
+  res
+    .status(202)
+    .json({ message: "El proceso de envío de mensajes ha comenzado." });
 };
 
-module.exports = {sendWsp};
+module.exports = { sendWspInBackground };

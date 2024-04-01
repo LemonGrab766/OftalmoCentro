@@ -13,17 +13,14 @@ const client = new Client({
   // },
 });
 
-console.log("hollaa");
 
 client.on("ready", () => {
   clientReady = true;
   console.log("Client is ready!");
 });
 
-// Función para consultar el estado listo
 function isClientReady() {
   return clientReady;
 }
 
-// Asegúrate de exportar tanto el cliente como la función para verificar su estado
 module.exports = { client, isClientReady };
