@@ -19,9 +19,9 @@ const login = async (req, res) => {
     });
 
     res.cookie("auth_cookie", token, {
-      httpOnly: true,
+      // httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite:"strict",
       maxAge: 2592000 * 1000,
       path: "/",
     });

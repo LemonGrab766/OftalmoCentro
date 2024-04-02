@@ -15,6 +15,6 @@ router.get("/qr", sendQr);
 
 router.post("/send-messages", sendWspInBackground);
 
-router.head("/server", confirmServer);
+// router.head("/server", confirmServer);
 
 module.exports = router;
