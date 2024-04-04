@@ -20,7 +20,14 @@ const sendWsp = async (data, messageTemplate) => {
 
       await client.sendMessage(number, message);
 
-      await delay(14000);
+      const delays = [
+        14005, 14200, 14550, 14890, 15000, 15123, 15345, 15567, 15888, 16000,
+        16234, 16555, 16789, 17000, 17222, 17500, 17777, 17999, 18000, 18333,
+      ];
+      const randomDelay = delays[Math.floor(Math.random() * delays.length)];
+      console.log(randomDelay);
+
+      await delay(randomDelay);
     }
   } catch (error) {
     console.log(error);
