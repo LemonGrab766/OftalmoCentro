@@ -8,7 +8,7 @@ const { delay } = require("../utils/delay");
 const sendWsp = async (data, messageTemplate) => {
   try {
     for (const item of data) {
-      const number = `549${item["Tel."].replace(/\D/g, "")}@c.us`;
+      const number = `549${item["Tel."].toString().replace(/\D/g, "")}@c.us`;
       let message = messageTemplate
         .replace(/{paciente}/g, item.Paciente)
         .replace(/{hora}/g, numberToHour(item.Hora))
