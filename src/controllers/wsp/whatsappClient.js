@@ -1,7 +1,7 @@
 const { Client, LocalAuth } = require("whatsapp-web.js");
 let clientReady = false;
 
-const wwebVersion = '2.2407.3';
+const wwebVersion = "2.2407.3";
 
 const client = new Client({
   authStrategy: new LocalAuth(),
@@ -14,11 +14,10 @@ const client = new Client({
     ],
   },
   webVersionCache: {
-    type: 'remote',
+    type: "remote",
     remotePath: `https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/${wwebVersion}.html`,
-},
+  },
 });
-
 
 client.on("ready", () => {
   clientReady = true;

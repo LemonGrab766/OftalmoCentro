@@ -12,7 +12,7 @@ const sendWsp = async (data, messageTemplate) => {
       let message = messageTemplate
         .replace(/{paciente}/g, item.Nombre)
         .replace(/{hora}/g, numberToHour(item.Hora))
-        .replace(/{profesional}/g, item.Profesional)
+        .replace(/{profesional}/g, data[0].Profesional)
         .replace(/{fecha}/g, formatDate(new Date()))
         .replace(/{fecha \+ (\d+)}/g, (match, days) =>
           formatDate(addDaysToDate(Number(days)))
@@ -25,7 +25,6 @@ const sendWsp = async (data, messageTemplate) => {
         16234, 16555, 16789, 17000, 17222, 17500, 17777, 17999, 18000, 18333,
       ];
       const randomDelay = delays[Math.floor(Math.random() * delays.length)];
-      console.log(randomDelay);
 
       await delay(randomDelay);
     }
