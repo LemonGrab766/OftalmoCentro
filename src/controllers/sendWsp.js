@@ -8,28 +8,37 @@ const { delay } = require("../utils/delay");
 const sendWsp = async (data, messageTemplate) => {
   try {
     for (const item of data) {
-      const number = `549${item["Tel."].toString().replace(/\D/g, "")}@c.us`;
-      let message = messageTemplate
-        .replace(/{paciente}/g, item.Paciente)
-        .replace(/{hora}/g, numberToHour(item.Hora))
-        .replace(/{profesional}/g, data[0].Profesional)
-        .replace(/{fecha}/g, formatDate(new Date()))
-        .replace(/{fecha \+ (\d+)}/g, (match, days) =>
-          formatDate(addDaysToDate(Number(days)))
-        );
+      if (!item["Tel."] || item["Tel."].toString().replace(/\D/g, "") === "") {
+        console.log("No hay número de teléfono válido para:", item.Paciente);
+        continue;
+      }
+      try {
+        const number = `549${item["Tel."].toString().replace(/\D/g, "")}@c.us`;
+        let message = messageTemplate
+          .replace(/{paciente}/g, item.Paciente)
+          .replace(/{hora}/g, numberToHour(item.Hora))
+          .replace(/{profesional}/g, data[0].Profesional)
+          .replace(/{fecha}/g, formatDate(new Date()))
+          .replace(/{fecha \+ (\d+)}/g, (match, days) =>
+            formatDate(addDaysToDate(Number(days)))
+          );
 
-      await client.sendMessage(number, message);
+        await client.sendMessage(number, message);
 
-      const delays = [
-        14005, 14200, 14550, 14890, 15000, 15123, 15345, 15567, 15888, 16000,
-        16234, 16555, 16789, 17000, 17222, 17500, 17777, 17999, 18000, 18333,
-      ];
-      const randomDelay = delays[Math.floor(Math.random() * delays.length)];
+        const delays = [
+          14005, 14200, 14550, 14890, 15000, 15123, 15345, 15567, 15888, 16000,
+          16234, 16555, 16789, 17000, 17222, 17500, 17777, 17999, 18000, 18333,
+        ];
+        const randomDelay = delays[Math.floor(Math.random() * delays.length)];
 
-      await delay(randomDelay);
+        await delay(randomDelay);
+      } catch (error) {
+        console.log("Number:", item["Tel."]);
+        console.log(error.message);
+      }
     }
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
   }
 };
 
