@@ -18,6 +18,7 @@ const client = new Client({
       '--disable-gpu'
     ],
   },
+  webVersion: wwebVersion,
   webVersionCache: {
     type: "remote",
     remotePath: `https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/${wwebVersion}.html`,
