@@ -4,15 +4,15 @@ let clientReady = false;
 const wwebVersion = "2.2407.3";
 
 const client = new Client({
-  // authStrategy: new LocalAuth(),
-  // puppeteer: {
-  //   headless: true,
-  //   args: [
-  //     "--no-sandbox",
-  //     "--disable-setuid-sandbox",
-  //     "--disable-dev-shm-usage",
-  //   ],
-  // },
+  authStrategy: new LocalAuth(),
+  puppeteer: {
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+    ],
+  },
   webVersionCache: {
     type: "remote",
     remotePath: `https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/${wwebVersion}.html`,
@@ -22,6 +22,19 @@ const client = new Client({
 client.on("ready", () => {
   clientReady = true;
   console.log("Client is ready!");
+});
+
+client.on("disconnected", (reason) => {
+  clientReady = false;
+  console.log(`Client was disconnected! Reason: ${reason}`);
+  client.destroy().then(() => client.initialize());
+});
+
+// Para manejar la falla de autenticación
+client.on("auth_failure", (message) => {
+  clientReady = false;
+  console.error(`Authentication failed: ${message}`);
+  client.destroy().then(() => client.initialize());
 });
 
 function isClientReady() {

@@ -6,6 +6,7 @@ const { formatDate, addDaysToDate } = require("../utils/dateFuncts");
 const { delay } = require("../utils/delay");
 
 const sendWsp = async (data, messageTemplate) => {
+  console.log("send");
   try {
     for (const item of data) {
       if (!item["Tel."] || item["Tel."].toString().replace(/\D/g, "") === "") {
