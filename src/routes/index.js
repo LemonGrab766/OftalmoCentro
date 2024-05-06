@@ -4,6 +4,8 @@ const { sendQr } = require("../controllers/sendQr");
 const { confirmServer } = require("../controllers/confirmSever");
 const { login } = require("../controllers/user/login");
 const { check } = require("../controllers/user/check");
+const { cancelMessage } = require("../controllers/message/cancelMessage");
+const { statusProcess } = require("../controllers/message/processMessage");
 
 const router = Router();
 
@@ -15,6 +17,10 @@ router.get("/qr", sendQr);
 
 router.post("/send-messages", sendWspInBackground);
 
-// router.head("/server", confirmServer);
+router.get("/cancel-messages", cancelMessage);
+
+router.get("/process-messages", statusProcess);
+
+router.head("/server", confirmServer);
 
 module.exports = router;
