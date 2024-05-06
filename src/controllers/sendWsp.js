@@ -6,8 +6,6 @@ const { formatDate, addDaysToDate } = require("../utils/dateFuncts");
 const { delay } = require("../utils/delay");
 
 const sendWsp = async (data, messageTemplate) => {
-  console.log("send");
-  console.log(data);
   try {
     for (const item of data) {
       if (!item["Tel."] || item["Tel."].toString().replace(/\D/g, "") === "") {
@@ -15,6 +13,7 @@ const sendWsp = async (data, messageTemplate) => {
         continue;
       }
       try {
+        console.log(item.Paciente);
         const number = `549${item["Tel."].toString().replace(/\D/g, "")}@c.us`;
         let message = messageTemplate
           .replace(/{paciente}/g, item.Paciente)
