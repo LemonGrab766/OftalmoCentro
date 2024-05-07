@@ -16,9 +16,26 @@ function excelSerialDateToJSDate(serial) {
   const utc_days = Math.floor(serial - 25569);
   const date_info = new Date(utc_days * 86400000);
 
-  return new Date(date_info.getUTCFullYear(), date_info.getUTCMonth(), date_info.getUTCDate());
+  return new Date(
+    date_info.getUTCFullYear(),
+    date_info.getUTCMonth(),
+    date_info.getUTCDate()
+  );
 }
 
+function getDayOfWeek(date) {
+  date.toLocaleDateString("es-ES");
+  const days = [
+    "domingo",
+    "lunes",
+    "martes",
+    "miércoles",
+    "jueves",
+    "viernes",
+    "sábado",
+  ];
+  return days[date.getDay()];
+}
 
 // function formatDate(date) {
 //   let day = date.getDate();
@@ -31,5 +48,9 @@ function excelSerialDateToJSDate(serial) {
 //   return `${day}/${month}/${year}`;
 // }
 
-
-module.exports = { addDaysToDate, formatDate, excelSerialDateToJSDate };
+module.exports = {
+  addDaysToDate,
+  formatDate,
+  excelSerialDateToJSDate,
+  getDayOfWeek,
+};

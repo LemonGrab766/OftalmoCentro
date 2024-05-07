@@ -6,6 +6,7 @@ const {
   formatDate,
   addDaysToDate,
   excelSerialDateToJSDate,
+  getDayOfWeek,
 } = require("../utils/dateFuncts");
 const { delay } = require("../utils/delay");
 const {
@@ -16,14 +17,32 @@ const {
 
 const processPhoneNumber = (phoneField) => {
   if (!phoneField) return null;
-  const phones = phoneField.split("//");
+  // const phones = phoneField.split("//");
+  const regex = /\b\d{2,4}[-\s]?\d{3,4}[-\s]?\d{0,4}\b/g;
+
+  // Usamos match para obtener todos los números que coinciden con el regex
+  const phones = phoneField.match(regex);
   let number = "";
   for (const phone of phones) {
     const phoneNum = phone.toString().replace(/\D/g, "");
     if (phoneNum.length >= 8) {
-      if (phoneNum.length === 8 && phoneNum.startsWith("15")) {
-        const cleanNumber = phoneNum.substring(2);
-        number = "3544" + cleanNumber;
+      // if (phoneNum.length === 8 && phoneNum.startsWith("15")) {
+      //   const cleanNumber = phoneNum.substring(2);
+      //   number = "3544" + cleanNumber;
+      // } else {
+      //   number = phoneNum;
+      // }
+
+      // Chequear si el número tiene el formato 15XXXXXXXX (8 dígitos comenzando con 15)
+      if (/^15\d{6}$/.test(phoneNum)) {
+        // Reemplaza '15' con '3544'
+        number = "3544" + phoneNum.substring(2);
+      }
+
+      // Chequear si el número tiene el formato 354415XXXXXXXX
+      else if (/^354415\d{6}$/.test(phoneNum)) {
+        // Elimina el '15'
+        number = "3544" + phoneNum.substring(6);
       } else {
         number = phoneNum;
       }
@@ -33,11 +52,8 @@ const processPhoneNumber = (phoneField) => {
 };
 
 const sendWsp = async (data, messageTemplate) => {
-  // console.log(data);
   try {
     for (const item of data) {
-      // console.log(item, "item");
-      // console.log(messageStatus());
       if (!messageStatus()) {
         return;
       }
@@ -45,36 +61,33 @@ const sendWsp = async (data, messageTemplate) => {
       processMessageOp(true);
 
       if (
-        !item.__EMPTY_11 ||
-        item.__EMPTY_11.toString().replace(/\D/g, "") === ""
+        !item.__EMPTY_6 ||
+        item.__EMPTY_6.toString().replace(/\D/g, "") === ""
       ) {
-        if (item.__EMPTY_11) {
-          console.log("No hay número de teléfono válido para:", item.__EMPTY_3);
+        if (item.__EMPTY_6) {
+          console.log("No hay número de teléfono válido para:", item.__EMPTY_2);
         }
         continue;
       }
       try {
-        const number2 = processPhoneNumber(item.__EMPTY_11);
-        console.log(number2, "number");
-        console.log(item.__EMPTY_3);
-        // console.log(item.__EMPTY_11);
-        const number = `549${item.__EMPTY_11
+        const numberFormated = processPhoneNumber(item.__EMPTY_6);
+        const number = `549${numberFormated
           .toString()
           .replace(/\D/g, "")}@c.us`;
 
-        const jsDate = excelSerialDateToJSDate(data[2].__EMPTY_6);
-        console.log(jsDate);
+        const jsDate = excelSerialDateToJSDate(data[0].__EMPTY_4);
         const formattedDate = formatDate(jsDate);
-        console.log(formattedDate);
+
         let message = messageTemplate
-          .replace(/{paciente}/g, item.__EMPTY_3)
+          .replace(/{paciente}/g, item.__EMPTY_2)
           .replace(/{hora}/g, numberToHour(item.__EMPTY))
-          .replace(/{profesional}/g, data[2].__EMPTY_14)
+          .replace(/{profesional}/g, data[0].__EMPTY_8)
           .replace(/{fecha}/g, formattedDate)
+          .replace(/{dia}/g, getDayOfWeek(jsDate))
           .replace(/{fecha \+ (\d+)}/g, (match, days) =>
             formatDate(addDaysToDate(Number(days)))
           );
-
+        console.log(number, "number");
         console.log(message);
 
         // await client.sendMessage(number, message);
@@ -97,11 +110,11 @@ const sendWsp = async (data, messageTemplate) => {
 };
 
 const sendWspInBackground = async (req, res) => {
-  // if (!isClientReady()) {
-  //   return res
-  //     .status(503)
-  //     .json({ message: "El cliente de WhatsApp no está listo" });
-  // }
+  if (!isClientReady()) {
+    return res
+      .status(503)
+      .json({ message: "El cliente de WhatsApp no está listo" });
+  }
 
   if (!messageStatus()) {
     messageOp(true);

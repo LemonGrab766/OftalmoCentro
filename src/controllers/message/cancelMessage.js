@@ -1,17 +1,17 @@
-const { messageOp, messageStatus } = require("./messageOption");
+const { messageOp, messageStatus, processMessageOp } = require("./messageOption");
 
 const cancelMessage = (req, res) => {
-    console.log("hola");
+  processMessageOp(false);
   messageOp(false);
-  res.send(true)
+  res.send(true);
 };
 
 const statusMessage = (req, res) => {
-    if (messageStatus()) {
-      res.send(true);
-    } else {
-      res.send(false);
-    }
-  };
+  if (messageStatus()) {
+    res.send(true);
+  } else {
+    res.send(false);
+  }
+};
 
 module.exports = { cancelMessage, statusMessage };
