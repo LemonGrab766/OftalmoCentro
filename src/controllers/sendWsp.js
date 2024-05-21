@@ -52,6 +52,7 @@ const processPhoneNumber = (phoneField) => {
 };
 
 const sendWsp = async (data, messageTemplate) => {
+  console.log(data);
   try {
     for (const item of data) {
       if (!messageStatus()) {
@@ -90,7 +91,7 @@ const sendWsp = async (data, messageTemplate) => {
         console.log(number, "number");
         console.log(message);
 
-        // await client.sendMessage(number, message);
+        await client.sendMessage(number, message);
 
         const delays = [
           14005, 14200, 14550, 14890, 15000, 15123, 15345, 15567, 15888, 16000,
