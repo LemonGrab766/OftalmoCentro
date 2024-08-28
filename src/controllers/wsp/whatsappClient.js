@@ -1,7 +1,32 @@
+const { default: axios } = require("axios");
 const { Client, LocalAuth } = require("whatsapp-web.js");
 let clientReady = false;
 
-const wwebVersion = "2.2409.2";
+let wwebVersion = "2.2412.54";
+
+// const currentVersion = "2.2346.52"; // Versión actual o una de respaldo
+
+// const getLatestVersion = async (currentVersion) => {
+//   const res = await axios.get(
+//     `https://web.whatsapp.com/check-update?version=${currentVersion}&platform=web`
+//   );
+//   const data = res.data;
+//   return data.currentVersion;
+// };
+
+// getLatestVersion(currentVersion)
+//   .then((latestVersion) => {
+//     if (latestVersion) {
+//       wwebVersion = latestVersion;
+//       console.log(wwebVersion);
+//     } else {
+//       console.error("No se pudo obtener la versión más reciente.");
+//     }
+//   })
+//   .catch((error) => {
+//     console.error("Error al obtener la versión más reciente:", error);
+//   });
+
 
 const client = new Client({
   authStrategy: new LocalAuth(),
@@ -13,11 +38,11 @@ const client = new Client({
       "--disable-dev-shm-usage",
     ],
   },
-  webVersion: wwebVersion,
-  webVersionCache: {
-    type: "remote",
-    remotePath: `https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/${wwebVersion}.html`,
-  },
+  // webVersion: wwebVersion,
+  // webVersionCache: {
+  //   type: "remote",
+  //   remotePath: `https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/${wwebVersion}.html`,
+  // },
 });
 
 client.on("ready", () => {

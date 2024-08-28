@@ -18,6 +18,10 @@ const {
 const processPhoneNumber = (phoneField) => {
   if (!phoneField) return null;
   // const phones = phoneField.split("//");
+  if (typeof phoneField === "number") {
+    return phoneField.toString();
+  }
+
   const regex = /\b\d{2,4}[-\s]?\d{3,4}[-\s]?\d{0,4}\b/g;
 
   // Usamos match para obtener todos los números que coinciden con el regex
@@ -51,6 +55,19 @@ const processPhoneNumber = (phoneField) => {
   return number;
 };
 
+function capitalizeWords(str) {
+  return str.toLowerCase().replace(/\b\w/g, function (letter) {
+    return letter.toUpperCase();
+  });
+}
+
+function reFormatDate(date) {
+  const jsDate = excelSerialDateToJSDate(date);
+  const formattedDate = formatDate(jsDate);
+
+  return formattedDate;
+}
+
 const sendWsp = async (data, messageTemplate) => {
   console.log(data);
   try {
@@ -77,17 +94,20 @@ const sendWsp = async (data, messageTemplate) => {
           .replace(/\D/g, "")}@c.us`;
 
         const jsDate = excelSerialDateToJSDate(data[0].__EMPTY_4);
-        const formattedDate = formatDate(jsDate);
+        // const formattedDate = formatDate(jsDate);
 
         let message = messageTemplate
-          .replace(/{paciente}/g, item.__EMPTY_2)
+          .replace(/{paciente}/g, capitalizeWords(item.__EMPTY_2))
           .replace(/{hora}/g, numberToHour(item.__EMPTY))
-          .replace(/{profesional}/g, data[0].__EMPTY_8)
-          .replace(/{fecha}/g, formattedDate)
+          .replace(/{nueva hora}/g, numberToHour(item.__EMPTY_13))
+          .replace(/{profesional}/g, capitalizeWords(data[0].__EMPTY_8))
+          // .replace(/{fecha}/g, formattedDate)
           .replace(/{dia}/g, getDayOfWeek(jsDate))
+          .replace(/{fecha}/g, reFormatDate(data[0].__EMPTY_4))
           .replace(/{fecha \+ (\d+)}/g, (match, days) =>
             formatDate(addDaysToDate(Number(days)))
-          );
+          )
+          .replace(/{nueva fecha}/g, reFormatDate(item.__EMPTY_12));
         console.log(number, "number");
         console.log(message);
 
