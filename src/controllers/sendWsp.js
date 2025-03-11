@@ -56,9 +56,53 @@ const processPhoneNumber = (phoneField) => {
 };
 
 function capitalizeWords(str) {
+  if (!str) {
+    return "Nombre";
+  }
   return str.toLowerCase().replace(/\b\w/g, function (letter) {
     return letter.toUpperCase();
   });
+}
+function capitalizeWordsDoctor(str) {
+  if (!str) {
+    return "La Dra";
+  }
+  str = str.toLowerCase(); // Asignar a str después de convertirlo a minúsculas
+  let before = "";
+
+  if (
+    str.includes("meyer") ||
+    str.includes("iribarren") ||
+    str.includes("cuello") ||
+    str.includes("pegoraro")
+  ) {
+    before = "el Dr. "; // Asumimos que es un doctor
+  } else if (str.includes("bort")) {
+    // Esto está repetido
+    before = "la técnica "; // Asegúrate de que esta condición sea necesaria
+  } else {
+    before = "la Dra. "; // Por defecto, es una doctora
+  }
+
+  return (
+    before +
+    str.replace(/\b\w/g, function (letter) {
+      return letter.toUpperCase();
+    })
+  );
+}
+
+function handleEstudios(dr) {
+  if (!dr) {
+    return "";
+  } else {
+    dr = dr.toLowerCase(); // Asignar a str después de convertirlo a minúsculas
+    if (dr.includes("lopez") || dr.includes("bort")) {
+      return "para unos estudios ";
+    } else {
+      return "";
+    }
+  }
 }
 
 function reFormatDate(date) {
@@ -93,21 +137,33 @@ const sendWsp = async (data, messageTemplate) => {
           .toString()
           .replace(/\D/g, "")}@c.us`;
 
-        const jsDate = excelSerialDateToJSDate(data[0].__EMPTY_4);
+        const jsDate = excelSerialDateToJSDate(item.fecha);
+        let jsDateNew = new Date();
+        if (item.__EMPTY_12) {
+          jsDateNew = excelSerialDateToJSDate(item.__EMPTY_12);
+        }
         // const formattedDate = formatDate(jsDate);
 
         let message = messageTemplate
           .replace(/{paciente}/g, capitalizeWords(item.__EMPTY_2))
           .replace(/{hora}/g, numberToHour(item.__EMPTY))
           .replace(/{nueva hora}/g, numberToHour(item.__EMPTY_13))
-          .replace(/{profesional}/g, capitalizeWords(data[0].__EMPTY_8))
+          .replace(/{profesional}/g, capitalizeWordsDoctor(item.doctor))
           // .replace(/{fecha}/g, formattedDate)
           .replace(/{dia}/g, getDayOfWeek(jsDate))
-          .replace(/{fecha}/g, reFormatDate(data[0].__EMPTY_4))
+          .replace(/{nuevo dia}/g, getDayOfWeek(jsDateNew))
+          .replace(/{fecha}/g, reFormatDate(item.fecha))
           .replace(/{fecha \+ (\d+)}/g, (match, days) =>
             formatDate(addDaysToDate(Number(days)))
           )
-          .replace(/{nueva fecha}/g, reFormatDate(item.__EMPTY_12));
+          .replace(/{nueva fecha}/g, reFormatDate(item.__EMPTY_12))
+          .replace(
+            /{pami}/g,
+            item.__EMPTY_3 !== "PAMI"
+              ? ""
+              : `\n📱 Por favor, traiga la última versión de su documento y, si es posible, descargue la aplicación de PAMI en su dispositivo móvil para facilitar la atención. Puede descargarla aquí: https://play.google.com/store/apps/details?id=ar.org.pami.app.\n`
+          )
+          .replace(/{estudios} /g, handleEstudios(item.doctor));
         console.log(number, "number");
         console.log(message);
 
